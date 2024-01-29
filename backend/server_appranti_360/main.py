@@ -138,6 +138,13 @@ def _local_get_image(image_id):
     return payload
 
 
+@app.route('/posteinformatique/get_image_name', methods=['POST'])
+def get_image_name():
+    image_id = int(request.args.get('imgid', -1))
+    file_path = GLOBAL_DATA['images_data'][image_id][0]
+    return jsonify({'filename': pathlib.PurePath(file_path).name})
+
+
 @app.route('/posteinformatique/get_image', methods=['GET', 'POST'])
 def get_image():
     image_id = int(request.args.get('imgid', -1))
