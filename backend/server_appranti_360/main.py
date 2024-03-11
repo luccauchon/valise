@@ -170,14 +170,15 @@ def serialize_image(image_array):
 def do_inference_for_image():
     image_id = int(request.args.get('imgid', -1))
     magic_number = int(request.args.get('magicnumber', -1))
-    # print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")}]  -- {magic_number=} -- {image_id=}', flush=True)
+    modele_id = request.args.get('modeleid', -1)
+    print(f'[{datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")}]  -- {magic_number=} -- {image_id=} -- {modele_id=}', flush=True)
 
     job_id = f'{int(uuid.uuid4())}'
     in__shared = GLOBAL_DATA['in__shared']
     file_path = GLOBAL_DATA['images_data'][image_id][0]
     try:
         w, h = GLOBAL_DATA['w'], GLOBAL_DATA['h']
-        in__shared.put_nowait({'image_id': image_id, 'job_id': job_id, 'file_path': file_path, 'h': h, 'w': w})
+        in__shared.put_nowait({'image_id': image_id, 'job_id': job_id, 'file_path': file_path, 'h': h, 'w': w, 'modele_id': modele_id})
     except:
         pass
 
@@ -258,14 +259,14 @@ def controller_processor(in__shared, out__shared, ):
             continue
         logger.debug(f'[Controller]\nProcessing {payload}')
 
-        if 'image_id' in payload:
-            image_id, job_id, file_path, h, w = payload['image_id'], payload['job_id'], payload['file_path'], payload['h'], payload['w']
+        if 'image_id' in payload:  # This means we read the data from disk
+            image_id, job_id, file_path, h, w, modele_id = payload['image_id'], payload['job_id'], payload['file_path'], payload['h'], payload['w'], payload['modele_id']
             assert os.path.exists(file_path)
             image = cv2.imread(file_path)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = cv2.resize(image, dsize=(w, h), interpolation=cv2.INTER_LANCZOS4)
             image = Image.fromarray(image)
-        else:
+        else:  # We received the data from the client
             assert 'image_bytes' in payload
             image_io, job_id, h, w = payload['image_bytes'], payload['job_id'], payload['h'], payload['w']
             image = Image.open(image_io)
@@ -286,6 +287,8 @@ def controller_processor(in__shared, out__shared, ):
         for rect in rectangles:
             x, y, width, height = rect
             mask[y:y + height, x:x + width, :] = [255, 0, 0]  # White color
+
+        # Print model's name in image
 
         # Retourne la réponse
         while True:
