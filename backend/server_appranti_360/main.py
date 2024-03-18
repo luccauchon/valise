@@ -406,7 +406,7 @@ def worker_processor_SAM(configuration):
             tmp_pred_y = torch.stack((y_pred[0][class_id] * 1,) * 3, dim=2)
             assert np.prod(tmp_pred_y.shape) == torch.count_nonzero(tmp_pred_y == 0) + torch.count_nonzero(tmp_pred_y == 1)
             the_color = couleurs[cat_id__2__cat_name[class_id]][:-1]
-            tmp_pred_y = tmp_pred_y * torch.tensor(the_color, dtype=torch.float32)
+            tmp_pred_y = tmp_pred_y * torch.tensor(the_color, dtype=torch.float32, device=config["device"])
             the_y_pred = the_y_pred + tmp_pred_y
         the_y_pred = the_y_pred.cpu().numpy()
         mask = cv2.resize(the_y_pred, dsize=(width_fe, height_fe), interpolation=cv2.INTER_LANCZOS4)
