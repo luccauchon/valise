@@ -428,6 +428,8 @@ if __name__ == '__main__':
     images_dir = 'D:\\dataset\\val2017'
     # Le code source des modèles
     path_code_source = [r'D:\PyCharmProjects\server_appranti_360\src_from_ireq\SAMed_h']
+    sam_checkpoint = r'D:\PyCharmProjects\server_appranti_360\src_from_ireq\SAMed_h\appranti-360\checkpoints\sam_vit_h_4b8939.pth'
+    weights_dir = r"D:\PyCharmProjects\server_appranti_360\2024.03.14.Demo\\"
 
     jpeg_files = scan_for_jpeg_and_png(images_dir)
     images_data = {}
@@ -456,8 +458,8 @@ if __name__ == '__main__':
                                              'couleurs': couleurs,
                                              'model_parameters': {'w_img__in': 500, 'h_img__in': 500, 'w_img__out': 1500, 'h_img__out': 1500, 'device': 'cpu', 'rank': 4, 'num_classes': 10+1,
                                                                   'cat_id__2__cat_name': {1: 'D',2: 'C',3: 'TC',4: 'FP',5: 'E',6: 'DE',7: 'EC',8: 'NC',9: 'CP',10: 'DEP'},
-                                                                  'sam_checkpoint': r'D:\PyCharmProjects\server_appranti_360\src_from_ireq\SAMed_h\appranti-360\checkpoints\sam_vit_h_4b8939.pth',
-                                                                  'weights': r"D:\PyCharmProjects\server_appranti_360\2024.03.14.Demo\10CL"}}})
+                                                                  'sam_checkpoint': sam_checkpoint,
+                                                                  'weights': os.path.join(weights_dir, '10CL')}}})
 
     ###########################################################################
     # 5CL
@@ -467,8 +469,8 @@ if __name__ == '__main__':
                                              'couleurs': couleurs,
                                              'model_parameters': {'w_img__in': 500, 'h_img__in': 500, 'w_img__out': 1500, 'h_img__out': 1500, 'device': 'cpu', 'rank': 4, 'num_classes': 5 + 1,
                                                                   'cat_id__2__cat_name': {1: 'F', 2: 'FD', 3: 'FI', 4: 'FJ', 5: 'FJM'},
-                                                                  'sam_checkpoint': r'D:\PyCharmProjects\server_appranti_360\src_from_ireq\SAMed_h\appranti-360\checkpoints\sam_vit_h_4b8939.pth',
-                                                                  'weights': r"D:\PyCharmProjects\server_appranti_360\2024.03.14.Demo\5CL"}}})
+                                                                  'sam_checkpoint': sam_checkpoint,
+                                                                  'weights': os.path.join(weights_dir, '5CL')}}})
 
     ###########################################################################
     # Anomalie
@@ -478,8 +480,8 @@ if __name__ == '__main__':
                                             'couleurs': couleurs,
                                             'model_parameters': {'w_img__in': 500, 'h_img__in': 500, 'w_img__out': 1500, 'h_img__out': 1500, 'device': 'cpu', 'rank': 4, 'num_classes': 1 + 1,
                                                                  'cat_id__2__cat_name': {1: 'TC'},  # Juste pour avoir la couleur
-                                                                 'sam_checkpoint': r'D:\PyCharmProjects\server_appranti_360\src_from_ireq\SAMed_h\appranti-360\checkpoints\sam_vit_h_4b8939.pth',
-                                                                 'weights': r"D:\PyCharmProjects\server_appranti_360\2024.03.14.Demo\anomalie"}}})
+                                                                 'sam_checkpoint': sam_checkpoint,
+                                                                 'weights': os.path.join(weights_dir, 'anomalie')}}})
 
     ###########################################################################
     # D
@@ -489,8 +491,8 @@ if __name__ == '__main__':
                                                  'couleurs': couleurs,
                                                  'model_parameters': {'w_img__in': 500, 'h_img__in': 500, 'w_img__out': 1500, 'h_img__out': 1500, 'device': 'cpu', 'rank': 4, 'num_classes': 1 + 1,
                                                                       'cat_id__2__cat_name': {1: 'D'},
-                                                                      'sam_checkpoint': r'D:\PyCharmProjects\server_appranti_360\src_from_ireq\SAMed_h\appranti-360\checkpoints\sam_vit_h_4b8939.pth',
-                                                                      'weights': r"D:\PyCharmProjects\server_appranti_360\2024.03.14.Demo\D"}}})
+                                                                      'sam_checkpoint': sam_checkpoint,
+                                                                      'weights': os.path.join(weights_dir, 'D')}}})
 
     ###########################################################################
     # F
@@ -500,8 +502,8 @@ if __name__ == '__main__':
                                           'couleurs': couleurs,
                                           'model_parameters': {'w_img__in': 500, 'h_img__in': 500, 'w_img__out': 1500, 'h_img__out': 1500, 'device': 'cpu', 'rank': 4, 'num_classes': 1 + 1,
                                                                'cat_id__2__cat_name': {1: 'F'},
-                                                               'sam_checkpoint': r'D:\PyCharmProjects\server_appranti_360\src_from_ireq\SAMed_h\appranti-360\checkpoints\sam_vit_h_4b8939.pth',
-                                                               'weights': r"D:\PyCharmProjects\server_appranti_360\2024.03.14.Demo\F"}}})
+                                                               'sam_checkpoint': sam_checkpoint,
+                                                               'weights': os.path.join(weights_dir, 'F')}}})
 
     ###########################################################################
     # C
@@ -511,8 +513,8 @@ if __name__ == '__main__':
                                           'couleurs': couleurs,
                                           'model_parameters': {'w_img__in': 500, 'h_img__in': 500, 'w_img__out': 1500, 'h_img__out': 1500, 'device': 'cpu', 'rank': 4, 'num_classes': 1 + 1,
                                                                'cat_id__2__cat_name': {1: 'C'},
-                                                               'sam_checkpoint': r'D:\PyCharmProjects\server_appranti_360\src_from_ireq\SAMed_h\appranti-360\checkpoints\sam_vit_h_4b8939.pth',
-                                                               'weights': r"D:\PyCharmProjects\server_appranti_360\2024.03.14.Demo\C"}}})
+                                                               'sam_checkpoint': sam_checkpoint,
+                                                               'weights': os.path.join(weights_dir, 'C')}}})
 
     ###########################################################################
     # mock
