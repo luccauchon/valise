@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from multiprocessing import freeze_support
+from tqdm import tqdm
 import base64
 from einops import rearrange, reduce, repeat
 import pathlib
@@ -42,26 +43,6 @@ Session(app)
 
 GLOBAL_DATA = {}
 
-# APPRANTI_360__COLORS = {
-#     'C': (255, 0, 0, 'Red'),
-#     'CP': (0, 255, 0, 'Green'),
-#     'D': (0, 0, 255, 'Blue'),
-#     'DE': (255, 255, 0, 'Yellow'),
-#     'DEP': (255, 0, 255, 'Magenta'),
-#     'E': (0, 255, 255, 'Cyan'),
-#     'EC': (128, 0, 0, 'Maroon'),
-#     'F': (0, 128, 0, 'Olive'),
-#     'FD': (0, 0, 128, 'Navy'),
-#     'FI': (128, 128, 0, 'Olive Green'),
-#     'FJ': (128, 0, 128, 'Purple'),
-#     'FJM': (0, 128, 128, 'Teal'),  # sarcelle
-#     'FP': (255, 165, 0, 'Orange'),
-#     'NC': (128, 128, 128, 'Gray'),
-#     'TC': (255, 255, 255, 'White'),
-#     # Défauts agrégés
-#     'Anomalie': (255, 255, 255, 'White'),
-#     'Fissures_F-FD-FI-FJ-FJM': (0, 128, 0, 'Olive'),
-# }
 
 def _generate_image(image_id=None):
     # Save the image to an in-memory file (BytesIO)
@@ -83,26 +64,32 @@ def _generate_image(image_id=None):
     return image_io.getvalue()
 
 
+def _build_preview():
+    _base_url = GLOBAL_DATA['base_url'] + 'posteinformatique/get_image?'
+    image_key = list(GLOBAL_DATA['images_data'].keys())
+    urls_data, names_data = "[", "["
+    for j in tqdm(range(0, len(image_key))):
+        the_key = image_key[j]
+        fullpath, filename = GLOBAL_DATA['images_data'][the_key]
+        urls_data += f"\"{_base_url}imgid={the_key}\""
+        names_data += f"\"{filename}\""
+        if j < len(image_key) - 1:
+            urls_data += ","
+            names_data += ","
+    urls_data += "]"
+    names_data += "]"
+
+    return {'batch_size': 1, 'number_batches': len(image_key) - 1, 'images_url': urls_data, 'images_name': names_data}
+
+
 @app.route('/posteinformatique/listeimagespreview2', methods=['POST'])
 def a360_pi_liste_imagespreview2():
     try:
         GLOBAL_DATA['counter'] += 1
-        _base_url = GLOBAL_DATA['base_url'] + 'posteinformatique/get_image?'
-        image_key = list(GLOBAL_DATA['images_data'].keys())
-        urls_data, names_data = "[", "["
-        for j in range(0, len(image_key)):
-            the_key = image_key[j]
-            fullpath, filename = GLOBAL_DATA['images_data'][the_key]
-            urls_data += f"\"{_base_url}imgid={the_key}\""
-            names_data += f"\"{filename}\""
-            if j < len(image_key) - 1:
-                urls_data += ","
-                names_data += ","
-        urls_data += "]"
-        names_data += "]"
 
-        return jsonify({'batch_size': 1, 'number_batches': len(image_key) - 1,
-                        'images_url': urls_data, 'images_name': names_data})
+        result = GLOBAL_DATA['preview']
+
+        return jsonify(result)
     except Exception as e:
         return jsonify({'error': f'Error processing image: {str(e)}'}), 500
 
@@ -401,7 +388,7 @@ def worker_processor_SAM(configuration):
 
         # Dessine les prédictions
         height_fe, width_fe = configuration['h_frontend'], configuration['w_frontend']
-        the_y_pred = torch.zeros(config['h_img__out'], config['w_img__out'], 3, dtype=torch.float32)
+        the_y_pred = torch.zeros(config['h_img__out'], config['w_img__out'], 3, dtype=torch.float32, device=config["device"])
         for class_id in range(1, num_classes):
             tmp_pred_y = torch.stack((y_pred[0][class_id] * 1,) * 3, dim=2)
             assert np.prod(tmp_pred_y.shape) == torch.count_nonzero(tmp_pred_y == 0) + torch.count_nonzero(tmp_pred_y == 1)
@@ -442,6 +429,7 @@ if __name__ == '__main__':
     GLOBAL_DATA.update({'counter': 0,
                         'w': 4096, 'h': 3072})  # (h,w) des images lues sur le disque. C'est pour éviter de transférer trop de données ;)
     GLOBAL_DATA.update({'base_url': 'http://127.0.0.1:5000/'})  # L'adresse du serveur; aussi dans le client
+    GLOBAL_DATA.update({'preview': _build_preview()})  # Construit la liste des images disponibles pour le client
     GLOBAL_DATA.update({'resultats_inference': {}})  # Contient les résultats des inférences
 
     couleurs = {
