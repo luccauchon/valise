@@ -223,8 +223,8 @@ def do_inference_with_image():
     h, w = np.array(Image.open(image_io)).shape[:2]
 
     job_id = f'{int(uuid.uuid4())}'
-
-    in__shared = GLOBAL_DATA['in__shared']
+    model_id = data.get('model_id', 'mock')
+    in__shared = get_in__shared(model_id)
     try:
         in__shared.put_nowait({'image_bytes': image_io, 'job_id': job_id, 'h': h, 'w': w})
     except:
@@ -276,14 +276,14 @@ def worker_processor_mock(configuration, ):
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = cv2.resize(image, dsize=(w_fe, h_fe), interpolation=cv2.INTER_LANCZOS4)
             image = Image.fromarray(image)
+            height_fe, width_fe = configuration['h_frontend'], configuration['w_frontend']
         else:  # We received the data from the client
             assert 'image_bytes' in payload
-            image_io, job_id, h_fe, w_fe = payload['image_bytes'], payload['job_id'], configuration['h_frontend'], configuration['w_frontend']
+            image_io, job_id = payload['image_bytes'], payload['job_id']
             image = Image.open(image_io)
-            image = image.resize((w_fe, h_fe), Image.ANTIALIAS)
+            height_fe, width_fe = image.height, image.width
 
         # Do some work with model
-        height_fe, width_fe = configuration['h_frontend'], configuration['w_frontend']
         mask = np.random.randint(0, 256, (height_fe, width_fe, 3), dtype=np.uint8)
 
         # Define rectangle parameters (x, y, width, height) for each corner
@@ -370,9 +370,11 @@ def worker_processor_SAM(configuration):
             image = cv2.resize(image, dsize=(w_in, h_in), interpolation=cv2.INTER_LANCZOS4)
         else:  # We received the data from the client
             assert 'image_bytes' in payload
-            image_io, job_id, h_in, w_in = payload['image_bytes'], payload['job_id'], configuration['h_img__in'], configuration['w_img__in']
+            image_io, job_id, h_in, w_in = payload['image_bytes'], payload['job_id'], config['h_img__in'], config['w_img__in']
             image = Image.open(image_io)
-            image = image.resize((w_in, h_in), Image.ANTIALIAS)
+            height_fe, width_fe = image.height, image.width  # Dimension de l'image affichée dans l'application
+            image = image.resize((w_in, h_in))
+            image = np.asarray(image)
 
         # Do some work with model
         x, images_x = image, []
@@ -384,10 +386,9 @@ def worker_processor_SAM(configuration):
         t1 = time.time()
         y_pred = model(batched_input=x)
         t2 = time.time()
-        logger.debug(f'[{os.getpid()}] Inference done in {t2-t1:0.4} sec')
+        logger.debug(f'[{os.getpid()}] [{configuration["description"]}] Inference done in {t2-t1:0.4} sec')
 
         # Dessine les prédictions
-        height_fe, width_fe = configuration['h_frontend'], configuration['w_frontend']
         the_y_pred = torch.zeros(config['h_img__out'], config['w_img__out'], 3, dtype=torch.float32, device=config["device"])
         for class_id in range(1, num_classes):
             tmp_pred_y = torch.stack((y_pred[0][class_id] * 1,) * 3, dim=2)
